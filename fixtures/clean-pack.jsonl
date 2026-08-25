@@ -1,0 +1,4 @@
+{"pack_id": "req-clean", "role": "system", "text": "You are a helpful assistant."}
+{"pack_id": "req-clean", "role": "retrieve", "chunk_id": "c1", "text": "Shipping takes 3-5 business days within the continental US."}
+{"pack_id": "req-clean", "role": "retrieve", "chunk_id": "c2", "text": "Returns accepted within 30 days with original packaging."}
+{"pack_id": "req-clean", "role": "user", "text": "When will my order arrive?"}

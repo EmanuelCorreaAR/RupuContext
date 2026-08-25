@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rupucontext"
+version = "0.1.0"
+description = "Local-first CLI to audit LLM context packs for duplicate chunks and wasted context — part of the RupuData family."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [{ name = "Emanuel Correa" }]
+keywords = [
+    "llm",
+    "rag",
+    "context",
+    "overlap",
+    "cli",
+    "deduplication",
+    "audit",
+    "data-quality",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.4", "build>=1.0.0"]
+
+[project.scripts]
+rupucontext = "rupucontext.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/EmanuelCorreaAR/rupucontext"
+Repository = "https://github.com/EmanuelCorreaAR/rupucontext"
+Sibling = "https://github.com/EmanuelCorreaAR/rupudata"
+Issues = "https://github.com/EmanuelCorreaAR/rupucontext/issues"
+
+[tool.hatch.build]
+sources = ["src"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rupucontext"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"

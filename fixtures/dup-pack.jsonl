@@ -1,0 +1,4 @@
+{"pack_id": "req-001", "role": "system", "text": "You are a helpful assistant. Follow refund policy strictly."}
+{"pack_id": "req-001", "role": "retrieve", "chunk_id": "c42", "text": "Refund policy: items within 30 days may be returned with receipt."}
+{"pack_id": "req-001", "role": "retrieve", "chunk_id": "c17", "text": "Refund policy: items within 30 days may be returned with receipt."}
+{"pack_id": "req-001", "role": "user", "text": "Can I return this?"}

@@ -1,50 +1,47 @@
 # RupuContext
 
-Part of the **RupuData** family.
-
 **Lint the pack. Don't pay twice.**
 
-Local-first CLI to audit LLM context packs for duplicate chunks, cross-segment overlap, and wasted context. Deterministic JSON reports. CI gates. No model calls.
+Part of the **[RupuData](https://github.com/EmanuelCorreaAR/rupudata)** family — same overlap methodology, different object.
 
-**Repo:** [`rupucontext`](https://github.com/EmanuelCorreaAR/rupucontext) · **License:** Apache 2.0
-
----
-
-## The question
-
-**RupuData** asks: does your train overlap with your eval?
-
-**RupuContext** asks: are you paying the model to read the same text twice?
-
-You don't train anymore — you rent an LLM. The cost isn't fine-tuning; it's the **context pack** sent on every call: system prompt, retrieved chunks, history, user message. Duplicate chunks. Policy pasted again in the RAG. Questions already in the KB. The invoice arrives later. **RupuContext looks before the call.**
-
-Local. JSONL in. Deterministic JSON out. CI gate (exit 2). Technical signals — not certification, not a dashboard, not a proxy, not another LLM call to "evaluate."
-
----
-
-## What it compares
-
-Text overlap — exact match, normalized match, Jaccard shingles. Same engine as RupuData; different object: the **pack you send to the LLM**, not the training dataset.
-
-| | RupuData | RupuContext |
-|---|----------|-------------|
-| Question | Does train overlap eval? | Are you buying the same context twice? |
-| Input | Corpus / benchmark | Context pack (JSONL) |
+| | **RupuData** | **RupuContext** |
+|---|---|---|
+| Tagline | Follow the path of your data. | Lint the pack. Don't pay twice. |
+| Question | Does my training data overlap with my eval? | Am I paying the model to read the same text twice? |
+| Input | Dataset / benchmark (JSONL) | Context pack (JSONL segments) |
 | User | ML / data eng | Agent / RAG eng with exportable traces |
 
-**Family:** `rupudata` = path of the data · `rupucontext` = path of the context.
+RupuContext answers an uncomfortable question for the LLM era: **are you sending duplicate chunks, repeated policy text, or KB content twice in the same context pack?**
+
+Local CLI. Deterministic JSON audit reports. Policy gates for CI. Technical signals — not certification, not token pricing, not another LLM call to "evaluate."
+
+**Repo:** [`rupucontext`](https://github.com/EmanuelCorreaAR/rupucontext) · **Sibling:** [`rupudata`](https://github.com/EmanuelCorreaAR/rupudata) · **License:** Apache 2.0
 
 ---
 
-## What it is not
+## Install
 
-- Not token pricing (no tiktoken, no USD, no `--max-input-tokens` billing gates)
-- Not "don't call the LLM" — that's invoice logic, not leakage detection
-- Not tabular data tooling
-- Not prompt versioning
-- Not [Helicone](https://helicone.ai) or an observability proxy
+Requires Python 3.9+.
 
-If you can't export a pack or a trace, you're not the user yet.
+```bash
+pip install rupucontext
+rupucontext --help
+```
+
+---
+
+## Quick start
+
+```bash
+rupucontext scan fixtures/dup-pack.jsonl
+rupucontext report fixtures/dup-pack.jsonl
+rupucontext compare fixtures/corpus.jsonl fixtures/questions.jsonl
+rupucontext report fixtures/dup-pack.jsonl --fail-on-overlap
+rupucontext report fixtures/dup-pack.jsonl --max-overlap-rate 0.85
+rupucontext gate fixtures/dup-pack.jsonl --threshold 0.85
+```
+
+Policy gates (`--fail-on-overlap`, `--max-overlap-rate`, `gate`) exit **2** when thresholds are exceeded. Exit **1** is reserved for errors. The JSON audit report (including gate) is written either way.
 
 ---
 
@@ -63,33 +60,50 @@ Roles: `system`, `retrieve`, `history`, `user` (extensible). `chunk_id` optional
 
 ---
 
-## CLI (planned v0.1)
+## Matching methodology (shared with RupuData)
 
-```bash
-pip install rupucontext
+Same family engine — different audit object:
 
-rupucontext scan pack.jsonl                    # parse, validate, summarize
-rupucontext compare corpus.jsonl q.jsonl       # overlap: corpus vs questions
-rupucontext report pack.jsonl -o out.json
-rupucontext gate pack.jsonl --threshold 0.85   # exit 2 if overlap exceeds threshold
-```
+| Mode | Unit | Method id |
+|------|------|-----------|
+| Exact | segment `text` | `text_exact_v1` |
+| Normalized | segment `text` | `text_normalized_v1` |
+| Near-duplicate | character shingles | `jaccard_char_shingles_v1` |
+
+RupuData flags train/eval leakage. RupuContext flags wasted context inside the pack you send on every LLM call.
 
 ---
 
-## Report (deterministic JSON)
+## Audit report (deterministic JSON)
 
 ```json
 {
-  "pack_id": "req-001",
-  "duplicates": [
-    {"a": "c42", "b": "c17", "method": "exact", "overlap": 1.0}
-  ],
-  "cross_segment": [
-    {"from": "retrieve", "to": "system", "overlap": 0.82}
-  ],
-  "summary": {
-    "segment_count": 4,
-    "duplicate_bytes": 4096
+  "tool": "rupucontext",
+  "version": "0.1.0",
+  "family": "rupudata",
+  "tagline": "Lint the pack. Don't pay twice.",
+  "command": "report",
+  "methodology": {
+    "exact": "text_exact_v1",
+    "normalized": "text_normalized_v1",
+    "near": "jaccard_char_shingles_v1"
+  },
+  "result": {
+    "pack_id": "req-001",
+    "duplicates": [
+      {"a": "c42", "b": "c17", "method": "exact", "overlap": 1.0}
+    ],
+    "cross_segment": [],
+    "summary": {
+      "segment_count": 4,
+      "duplicate_bytes": 65
+    }
+  },
+  "gate": {
+    "passed": false,
+    "rules": [
+      {"metric": "max_overlap_rate", "actual": 1.0, "threshold": 0.85, "passed": false}
+    ]
   }
 }
 ```
@@ -104,7 +118,7 @@ Byte counts and overlap ratios — not token estimates.
 |------|---------|
 | `0` | Pass — no overlap above threshold |
 | `1` | Usage error — invalid file or schema |
-| `2` | Gate failed — duplicate/overlap above threshold |
+| `2` | Policy gate failed — duplicate/overlap above threshold |
 
 ```yaml
 # .github/workflows/rupucontext.yml
@@ -113,9 +127,47 @@ Byte counts and overlap ratios — not token estimates.
 
 ---
 
+## Try the fixtures
+
+```bash
+git clone https://github.com/EmanuelCorreaAR/rupucontext.git
+cd rupucontext
+pip install -e ".[dev]"
+
+rupucontext report fixtures/dup-pack.jsonl          # exact duplicate c42 ↔ c17
+rupucontext report fixtures/clean-pack.jsonl        # no overlap above threshold
+rupucontext compare fixtures/corpus.jsonl fixtures/questions.jsonl
+rupucontext gate fixtures/dup-pack.jsonl --threshold 0.85   # exit 2
+```
+
+---
+
+## What it is not
+
+- Not token pricing (no tiktoken, no USD)
+- Not prompt versioning or observability proxy
+- Not semantic / paraphrase matching (same as RupuData v0.9 — on purpose)
+
+If you can't export a pack or a trace, you're not the user yet.
+
+---
+
+## Development
+
+```bash
+git clone https://github.com/EmanuelCorreaAR/rupucontext.git
+cd rupucontext
+pip install -e ".[dev]"
+pytest
+```
+
+---
+
 ## Status
 
-Early stage. Skeleton repo — CLI implementation in progress.
+**0.1.0** — CLI (`scan`, `compare`, `report`, `gate`); shared overlap methodology with RupuData; policy gates; fixtures and CI.
+
+**Next:** stabilize the audit contract toward 1.0; optional cross-segment evidence samples in terminal output.
 
 ---
 
