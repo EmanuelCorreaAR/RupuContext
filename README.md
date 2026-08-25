@@ -72,7 +72,7 @@ Reports follow: `input → configuration → method → result → (optional) ga
 ```json
 {
   "tool": "rupucontext",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "command": "scan",
   "input": {
     "path": "fixtures/dup-pack.jsonl",
@@ -158,7 +158,7 @@ pytest
 
 ## Status
 
-**0.1.0** — `scan` + `compare`; policy gate flags; deterministic audit JSON.
+**0.1.1** — `scan` + `compare`; policy gate flags; deterministic audit JSON.
 
 **Next:** stabilize audit contract toward 1.0.
 
