@@ -37,52 +37,94 @@ class GateResult:
         }
 
 
-def evaluate_pack_gate(
+def evaluate_scan_gate(
     report: PackReport,
     *,
     fail_on_overlap: bool = False,
-    max_overlap_rate: float | None = None,
-    threshold: float = 0.85,
+    max_duplicate_rate: float | None = None,
+    max_near_duplicate_rate: float | None = None,
 ) -> GateResult | None:
-    if not fail_on_overlap and max_overlap_rate is None:
+    if not fail_on_overlap and max_duplicate_rate is None and max_near_duplicate_rate is None:
         return None
 
-    max_overlap = report.max_overlap
     rules: list[GateRule] = []
+    overlap_pairs = len(report.duplicates)
 
     if fail_on_overlap:
         rules.append(
             GateRule(
-                metric="any_overlap",
-                actual=max_overlap,
+                metric="overlap_pairs",
+                actual=float(overlap_pairs),
                 threshold=0.0,
-                passed=max_overlap <= 0.0,
+                passed=overlap_pairs == 0,
+            )
+        )
+
+    if max_duplicate_rate is not None:
+        exact_flagged = {seg for p in report.exact_pairs for seg in (p.a, p.b)}
+        exact_rate = len(exact_flagged) / report.segment_count if report.segment_count else 0.0
+        rules.append(
+            GateRule(
+                metric="duplicate_rate",
+                actual=round(exact_rate, 6),
+                threshold=max_duplicate_rate,
+                passed=exact_rate <= max_duplicate_rate,
+            )
+        )
+
+    if max_near_duplicate_rate is not None:
+        rules.append(
+            GateRule(
+                metric="near_duplicate_rate",
+                actual=round(report.near_duplicate_rate, 6),
+                threshold=max_near_duplicate_rate,
+                passed=report.near_duplicate_rate <= max_near_duplicate_rate,
+            )
+        )
+
+    return GateResult(passed=all(rule.passed for rule in rules), rules=rules)
+
+
+def evaluate_compare_gate(
+    *,
+    hit_count: int,
+    overlap_rate: float,
+    fail_on_overlap: bool = False,
+    max_overlap_rate: float | None = None,
+) -> GateResult | None:
+    if not fail_on_overlap and max_overlap_rate is None:
+        return None
+
+    rules: list[GateRule] = []
+    if fail_on_overlap:
+        rules.append(
+            GateRule(
+                metric="overlap_hits",
+                actual=float(hit_count),
+                threshold=0.0,
+                passed=hit_count == 0,
+            )
+        )
+        rules.append(
+            GateRule(
+                metric="overlap_rate",
+                actual=round(overlap_rate, 6),
+                threshold=0.0,
+                passed=overlap_rate <= 0.0,
             )
         )
 
     if max_overlap_rate is not None:
         rules.append(
             GateRule(
-                metric="max_overlap_rate",
-                actual=max_overlap,
+                metric="overlap_rate",
+                actual=round(overlap_rate, 6),
                 threshold=max_overlap_rate,
-                passed=max_overlap <= max_overlap_rate,
-            )
-        )
-    elif fail_on_overlap:
-        pass
-    else:
-        rules.append(
-            GateRule(
-                metric="max_overlap_rate",
-                actual=max_overlap,
-                threshold=threshold,
-                passed=max_overlap <= threshold,
+                passed=overlap_rate <= max_overlap_rate,
             )
         )
 
-    passed = all(rule.passed for rule in rules)
-    return GateResult(passed=passed, rules=rules)
+    return GateResult(passed=all(rule.passed for rule in rules), rules=rules)
 
 
 def gate_exit_code(gate: GateResult | None) -> int:

@@ -27,10 +27,10 @@ jobs:
       - name: Run tests
         run: pytest -q
 
-      - name: Gate fixture (expect fail)
+      - name: Scan dup fixture with gate (expect fail)
         run: |
-          rupucontext gate fixtures/dup-pack.jsonl --threshold 0.85 -q -o /tmp/rupucontext-gate.json
+          rupucontext scan fixtures/dup-pack.jsonl --fail-on-overlap -q -o /tmp/rupucontext-dup.json
           test $? -eq 2
 
-      - name: Gate clean fixture (expect pass)
-        run: rupucontext gate fixtures/clean-pack.jsonl --threshold 0.85 -q -o /tmp/rupucontext-clean.json
+      - name: Scan clean fixture with gate (expect pass)
+        run: rupucontext scan fixtures/clean-pack.jsonl --fail-on-overlap -q -o /tmp/rupucontext-clean.json

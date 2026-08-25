@@ -28,31 +28,23 @@ def tmp_report(tmp_path: Path):
     return tmp_path / "out.json"
 
 
-def test_scan(tmp_report: Path):
+def test_scan_audit_contract(tmp_report: Path):
     result = run_cli("scan", str(FIXTURES / "dup-pack.jsonl"), "-o", str(tmp_report), "-q")
     assert result.returncode == 0
     data = json.loads(tmp_report.read_text(encoding="utf-8"))
     assert data["tool"] == "rupucontext"
-    assert data["family"] == "rupudata"
-    assert data["result"]["segment_count"] == 4
+    assert "family" not in data
+    assert data["input"]["segments"] == 4
+    assert data["method"]["exact"] == "text_exact_v1"
+    assert data["result"]["exact_duplicates"]["pairs"] == 1
+    assert "gate" not in data
 
 
-def test_report_family_envelope(tmp_report: Path):
-    result = run_cli("report", str(FIXTURES / "dup-pack.jsonl"), "-o", str(tmp_report), "-q")
-    assert result.returncode == 0
-    data = json.loads(tmp_report.read_text(encoding="utf-8"))
-    assert data["family"] == "rupudata"
-    assert data["methodology"]["exact"] == "text_exact_v1"
-    assert data["result"]["pack_id"] == "req-001"
-    assert data["result"]["duplicates"]
-
-
-def test_report_gate_fails(tmp_report: Path):
+def test_scan_fail_on_overlap(tmp_report: Path):
     result = run_cli(
-        "report",
+        "scan",
         str(FIXTURES / "dup-pack.jsonl"),
-        "--max-overlap-rate",
-        "0.85",
+        "--fail-on-overlap",
         "-o",
         str(tmp_report),
         "-q",
@@ -60,27 +52,14 @@ def test_report_gate_fails(tmp_report: Path):
     assert result.returncode == 2
     data = json.loads(tmp_report.read_text(encoding="utf-8"))
     assert data["gate"]["passed"] is False
+    assert data["gate"]["rules"][0]["metric"] == "overlap_pairs"
 
 
-def test_gate_fails_on_duplicates(tmp_report: Path):
+def test_scan_clean_pack(tmp_report: Path):
     result = run_cli(
-        "gate",
-        str(FIXTURES / "dup-pack.jsonl"),
-        "--threshold",
-        "0.85",
-        "-o",
-        str(tmp_report),
-        "-q",
-    )
-    assert result.returncode == 2
-
-
-def test_gate_passes_clean_pack(tmp_report: Path):
-    result = run_cli(
-        "gate",
+        "scan",
         str(FIXTURES / "clean-pack.jsonl"),
-        "--threshold",
-        "0.85",
+        "--fail-on-overlap",
         "-o",
         str(tmp_report),
         "-q",
@@ -90,6 +69,30 @@ def test_gate_passes_clean_pack(tmp_report: Path):
     assert data["gate"]["passed"] is True
 
 
-def test_gate_usage_error(tmp_report: Path):
-    result = run_cli("gate", str(FIXTURES / "missing.jsonl"), "-o", str(tmp_report), "-q")
+def test_scan_usage_error(tmp_report: Path):
+    result = run_cli("scan", str(FIXTURES / "missing.jsonl"), "-o", str(tmp_report), "-q")
     assert result.returncode == 1
+
+
+def test_compare(tmp_report: Path):
+    result = run_cli(
+        "compare",
+        str(FIXTURES / "corpus.jsonl"),
+        str(FIXTURES / "questions.jsonl"),
+        "-o",
+        str(tmp_report),
+        "-q",
+    )
+    assert result.returncode == 0
+    data = json.loads(tmp_report.read_text(encoding="utf-8"))
+    assert data["command"] == "compare"
+    assert data["result"]["exact_overlap"]["shared_segments"] == 1
+
+
+def test_report_and_gate_removed():
+    result = run_cli("report", str(FIXTURES / "dup-pack.jsonl"))
+    assert result.returncode != 0
+    assert "invalid choice" in result.stderr or result.returncode == 2
+
+    result = run_cli("gate", str(FIXTURES / "dup-pack.jsonl"))
+    assert result.returncode != 0
