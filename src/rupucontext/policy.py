@@ -61,8 +61,7 @@ def evaluate_scan_gate(
         )
 
     if max_duplicate_rate is not None:
-        exact_flagged = {seg for p in report.exact_pairs for seg in (p.a, p.b)}
-        exact_rate = len(exact_flagged) / report.segment_count if report.segment_count else 0.0
+        exact_rate = report.exact_duplicate_rate
         rules.append(
             GateRule(
                 metric="duplicate_rate",

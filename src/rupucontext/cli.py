@@ -79,7 +79,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
                 output_path=str(args.output or DEFAULT_SCAN_REPORT),
             )
     else:
-        result = {"packs": [report.to_audit_result() for report in reports]}
+        result = {"results": [report.to_audit_result() for report in reports]}
         gate = None
         if any(g is not None for g in gates):
             from .policy import GateResult

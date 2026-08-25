@@ -32,8 +32,12 @@ Policy gates exit **2** when thresholds are exceeded. Exit **1** is reserved for
 
 | Command | Role |
 |---------|------|
-| `scan pack.jsonl` | Duplicates inside the pack |
+| `scan pack.jsonl` | Overlap inside the pack: retrieve∩retrieve, system∩retrieve, user∩retrieve, … |
 | `compare corpus.jsonl questions.jsonl` | RAG leak signal (eval text in the KB) |
+
+`scan` reports retrieve duplicates in `exact_duplicates` / `near_duplicates`, and cross-role overlap in `cross_segment` (e.g. policy pasted in system and retrieve). `compare` uses the same `segment_text` unit as `scan`.
+
+A JSONL file with multiple `pack_id` values emits `result.results[]`; a single pack emits one object under `result`.
 
 Gates are flags, not subcommands:
 
@@ -44,7 +48,7 @@ Gates are flags, not subcommands:
 | `--max-near-duplicate-rate` | scan | Exit 2 if near-duplicate `record_rate` exceeds threshold |
 | `--max-overlap-rate` | compare | Exit 2 if overlap rate exceeds threshold |
 
-`--near-duplicate-threshold` (default `0.85`) controls **detection** of near-duplicates. Policy gates use **rates**, not the Jaccard cutoff.
+`duplicate_rate` and `record_rate` use **retrieve segments only** as the denominator (`rate_denominator: retrieve_segments`). `--near-duplicate-threshold` (default `0.85`) controls **detection** of near-duplicates. Policy gates use **rates**, not the Jaccard cutoff.
 
 
 ## Input format (JSONL)
@@ -88,11 +92,13 @@ Reports follow: `input → configuration → method → result → (optional) ga
   "result": {
     "pack_id": "req-001",
     "segment_count": 4,
+    "retrieve_segment_count": 2,
     "exact_duplicates": {
       "pairs": 1,
       "segments_flagged": 2,
       "duplicate_bytes": 65,
-      "duplicate_rate": 0.5,
+      "duplicate_rate": 1.0,
+      "rate_denominator": "retrieve_segments",
       "evidence": [
         {"a": "c42", "b": "c17", "method": "exact", "overlap": 1.0}
       ]
@@ -101,9 +107,9 @@ Reports follow: `input → configuration → method → result → (optional) ga
       "pairs": 0,
       "segments_flagged": 0,
       "record_rate": 0.0,
+      "rate_denominator": "retrieve_segments",
       "evidence": []
-    },
-    "cross_segment": []
+    }
   },
   "gate": {
     "passed": false,
@@ -127,7 +133,7 @@ Byte counts and overlap ratios — not token estimates. Contract details: [docs/
 
 ```yaml
 # .github/workflows/rupucontext.yml
-- run: rupucontext scan fixtures/dup-pack.jsonl --fail-on-overlap
+- run: rupucontext scan fixtures/clean-pack.jsonl --fail-on-overlap
 ```
 
 

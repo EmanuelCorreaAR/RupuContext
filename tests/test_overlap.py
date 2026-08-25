@@ -53,6 +53,8 @@ def test_dup_pack_report():
     assert result["pack_id"] == "req-001"
     assert result["segment_count"] == 4
     assert result["exact_duplicates"]["pairs"] == 1
+    assert result["exact_duplicates"]["duplicate_rate"] == 1.0
+    assert result["exact_duplicates"]["rate_denominator"] == "retrieve_segments"
     assert result["exact_duplicates"]["evidence"][0]["overlap"] == 1.0
 
 

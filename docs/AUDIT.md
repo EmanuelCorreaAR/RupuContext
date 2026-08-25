@@ -22,11 +22,13 @@ Near-duplicate detection uses character shingles (Jaccard). `--near-duplicate-th
 
 | Field | Meaning |
 |-------|---------|
-| `exact_duplicates.pairs` | Segment pairs with exact or normalized match |
-| `exact_duplicates.duplicate_rate` | `segments_flagged / segment_count` |
-| `near_duplicates.pairs` | Segment pairs above Jaccard threshold |
-| `near_duplicates.record_rate` | Near-flagged segments / segment count |
-| `cross_segment` | Best overlap between role groups |
+| `exact_duplicates.pairs` | retrieve∩retrieve pairs with exact or normalized match |
+| `exact_duplicates.duplicate_rate` | retrieve segments flagged / `retrieve_segment_count` |
+| `near_duplicates.pairs` | retrieve∩retrieve pairs above Jaccard threshold |
+| `near_duplicates.record_rate` | near-flagged retrieve segments / `retrieve_segment_count` |
+| `cross_segment` | Best overlap between role groups (system∩retrieve, user∩retrieve, …) |
+
+When the input JSONL contains multiple `pack_id` values, `result` is `{ "results": [ ... ] }`. A single pack emits one object directly under `result`.
 
 Evidence documents **which segments** and **which score** — not full text payloads.
 

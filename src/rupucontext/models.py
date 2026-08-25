@@ -53,6 +53,7 @@ class PackReport:
     duplicates: list[DuplicatePair] = field(default_factory=list)
     cross_segment: list[CrossSegmentOverlap] = field(default_factory=list)
     segment_count: int = 0
+    retrieve_segment_count: int = 0
     duplicate_bytes: int = 0
 
     @property
@@ -63,49 +64,41 @@ class PackReport:
     def near_pairs(self) -> list[DuplicatePair]:
         return [pair for pair in self.duplicates if pair.method == "jaccard"]
 
-    @property
-    def segments_flagged(self) -> int:
-        flagged: set[str] = set()
-        for pair in self.duplicates:
-            flagged.add(pair.a)
-            flagged.add(pair.b)
-        return len(flagged)
+    def _retrieve_flagged(self, pairs: list[DuplicatePair]) -> set[str]:
+        return {seg for pair in pairs for seg in (pair.a, pair.b)}
 
     @property
-    def duplicate_rate(self) -> float:
-        if self.segment_count == 0:
+    def exact_duplicate_rate(self) -> float:
+        if self.retrieve_segment_count == 0:
             return 0.0
-        return self.segments_flagged / self.segment_count
+        return len(self._retrieve_flagged(self.exact_pairs)) / self.retrieve_segment_count
 
     @property
     def near_duplicate_rate(self) -> float:
-        if self.segment_count == 0:
+        if self.retrieve_segment_count == 0:
             return 0.0
-        flagged: set[str] = set()
-        for pair in self.near_pairs:
-            flagged.add(pair.a)
-            flagged.add(pair.b)
-        return len(flagged) / self.segment_count
+        return len(self._retrieve_flagged(self.near_pairs)) / self.retrieve_segment_count
 
     def to_audit_result(self) -> dict[str, Any]:
-        exact_flagged = {seg for p in self.exact_pairs for seg in (p.a, p.b)}
-        near_flagged = {seg for p in self.near_pairs for seg in (p.a, p.b)}
+        exact_flagged = self._retrieve_flagged(self.exact_pairs)
+        near_flagged = self._retrieve_flagged(self.near_pairs)
         return {
             "pack_id": self.pack_id,
             "segment_count": self.segment_count,
+            "retrieve_segment_count": self.retrieve_segment_count,
             "exact_duplicates": {
                 "pairs": len(self.exact_pairs),
                 "segments_flagged": len(exact_flagged),
                 "duplicate_bytes": self.duplicate_bytes if self.exact_pairs else 0,
-                "duplicate_rate": round(len(exact_flagged) / self.segment_count, 6)
-                if self.segment_count
-                else 0.0,
+                "duplicate_rate": round(self.exact_duplicate_rate, 6),
+                "rate_denominator": "retrieve_segments",
                 "evidence": [pair.to_dict() for pair in self.exact_pairs],
             },
             "near_duplicates": {
                 "pairs": len(self.near_pairs),
                 "segments_flagged": len(near_flagged),
                 "record_rate": round(self.near_duplicate_rate, 6),
+                "rate_denominator": "retrieve_segments",
                 "evidence": [pair.to_dict() for pair in self.near_pairs],
             },
             "cross_segment": [item.to_dict() for item in self.cross_segment],

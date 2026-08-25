@@ -47,10 +47,11 @@ def _duplicate_bytes(a: Segment, b: Segment) -> int:
 
 
 def find_duplicates(segments: list[Segment], threshold: float) -> tuple[list[DuplicatePair], int]:
+    retrieve = [segment for segment in segments if segment.role == "retrieve"]
     pairs: list[DuplicatePair] = []
     duplicate_bytes = 0
 
-    for left, right in combinations(segments, 2):
+    for left, right in combinations(retrieve, 2):
         method, score = overlap_score(left.text, right.text)
         if score < threshold:
             continue
@@ -96,6 +97,7 @@ def find_cross_segment(segments: list[Segment], threshold: float) -> list[CrossS
 
 
 def analyze_pack(segments: list[Segment], threshold: float = 0.85) -> PackReport:
+    retrieve_count = sum(1 for segment in segments if segment.role == "retrieve")
     duplicates, duplicate_bytes = find_duplicates(segments, threshold)
     cross_segment = find_cross_segment(segments, threshold)
     pack_id = segments[0].pack_id if segments else "unknown"
@@ -104,6 +106,7 @@ def analyze_pack(segments: list[Segment], threshold: float = 0.85) -> PackReport
         duplicates=duplicates,
         cross_segment=cross_segment,
         segment_count=len(segments),
+        retrieve_segment_count=retrieve_count,
         duplicate_bytes=duplicate_bytes,
     )
 
