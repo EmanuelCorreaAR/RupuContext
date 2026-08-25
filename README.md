@@ -6,9 +6,6 @@ Part of the **Rupu** family.
 
 Local CLI. Deterministic JSON audit reports. Policy gates for CI. Technical signals — not certification, not token pricing, not another LLM call to "evaluate."
 
-**Repo:** [`rupucontext`](https://github.com/EmanuelCorreaAR/rupucontext) · **License:** Apache 2.0
-
----
 
 ## Install
 
