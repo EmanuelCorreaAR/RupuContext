@@ -16,7 +16,6 @@ pip install rupucontext
 rupucontext --help
 ```
 
----
 
 ## Quick start
 
@@ -28,7 +27,6 @@ rupucontext compare fixtures/corpus.jsonl fixtures/questions.jsonl
 
 Policy gates exit **2** when thresholds are exceeded. Exit **1** is reserved for errors. The JSON audit report (including gate) is written either way.
 
----
 
 ## Commands
 
@@ -48,7 +46,6 @@ Gates are flags, not subcommands:
 
 `--near-duplicate-threshold` (default `0.85`) controls **detection** of near-duplicates. Policy gates use **rates**, not the Jaccard cutoff.
 
----
 
 ## Input format (JSONL)
 
@@ -63,7 +60,6 @@ One line per segment. Group by `pack_id`:
 
 Roles: `system`, `retrieve`, `history`, `user` (extensible). `chunk_id` optional but recommended for retrieve segments.
 
----
 
 ## Audit report
 
@@ -120,7 +116,6 @@ Reports follow: `input → configuration → method → result → (optional) ga
 
 Byte counts and overlap ratios — not token estimates. Contract details: [docs/AUDIT.md](docs/AUDIT.md).
 
----
 
 ## Exit codes
 
@@ -135,7 +130,6 @@ Byte counts and overlap ratios — not token estimates. Contract details: [docs/
 - run: rupucontext scan fixtures/dup-pack.jsonl --fail-on-overlap
 ```
 
----
 
 ## What it is not
 
@@ -145,7 +139,6 @@ Byte counts and overlap ratios — not token estimates. Contract details: [docs/
 
 If you can't export a pack or a trace, you're not the user yet.
 
----
 
 ## Development
 
@@ -156,7 +149,6 @@ pip install -e ".[dev]"
 pytest
 ```
 
----
 
 ## Status
 
@@ -164,8 +156,7 @@ pytest
 
 **Next:** stabilize audit contract toward 1.0.
 
----
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Apache License 2.0
