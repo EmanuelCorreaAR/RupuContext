@@ -29,8 +29,11 @@ jobs:
 
       - name: Scan dup fixture with gate (expect fail)
         run: |
+          set +e
           rupucontext scan fixtures/dup-pack.jsonl --fail-on-overlap -q -o /tmp/rupucontext-dup.json
-          test $? -eq 2
+          code=$?
+          set -e
+          test "$code" -eq 2
 
       - name: Scan clean fixture with gate (expect pass)
         run: rupucontext scan fixtures/clean-pack.jsonl --fail-on-overlap -q -o /tmp/rupucontext-clean.json
