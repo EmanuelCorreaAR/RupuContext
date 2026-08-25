@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.1] - 2026-08-25
+### Fixed
+- PyPI wheel packaging: include the `rupucontext` package (0.1.0 wheel shipped metadata only)
+
 ## [0.1.0] - 2026-08-25
 
 ### Added

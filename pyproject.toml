@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rupucontext"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local-first CLI to audit LLM context packs for duplicate chunks and wasted context — part of the Rupu family."
 readme = "README.md"
 license = "Apache-2.0"
@@ -64,9 +64,6 @@ include = [
 
 [tool.hatch.build]
 sources = ["src"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/rupucontext"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
