@@ -78,16 +78,19 @@ def find_cross_segment(segments: list[Segment], threshold: float) -> list[CrossS
     results: list[CrossSegmentOverlap] = []
 
     for from_role, to_role in combinations(roles, 2):
+        best_method = ""
         best = 0.0
         for left in by_role[from_role]:
             for right in by_role[to_role]:
-                _, score = overlap_score(left.text, right.text)
-                best = max(best, score)
+                method, score = overlap_score(left.text, right.text)
+                if score > best:
+                    best_method, best = method, score
         if best >= threshold:
             results.append(
                 CrossSegmentOverlap(
                     from_role=from_role,
                     to_role=to_role,
+                    method=best_method,
                     overlap=round(best, 4),
                 )
             )

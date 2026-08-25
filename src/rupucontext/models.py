@@ -41,10 +41,16 @@ class DuplicatePair:
 class CrossSegmentOverlap:
     from_role: str
     to_role: str
+    method: str
     overlap: float
 
     def to_dict(self) -> dict[str, Any]:
-        return {"from": self.from_role, "to": self.to_role, "overlap": self.overlap}
+        return {
+            "from": self.from_role,
+            "to": self.to_role,
+            "method": self.method,
+            "overlap": self.overlap,
+        }
 
 
 @dataclass

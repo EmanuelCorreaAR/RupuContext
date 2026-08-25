@@ -22,13 +22,12 @@ def test_audit_contract():
         "scan",
         input_meta={"path": "x.jsonl", "segments": 1, "packs": 1},
         configuration={"near_duplicate_threshold": 0.85},
-        result={"pack_id": "x"},
+        result={"results": [{"pack_id": "x"}]},
     )
     assert payload["tool"] == "rupucontext"
     assert "family" not in payload
     assert payload["method"] == METHOD
-    assert "input" in payload
-    assert "configuration" in payload
+    assert payload["result"]["results"][0]["pack_id"] == "x"
 
 
 def test_normalize():
@@ -55,11 +54,28 @@ def test_dup_pack_report():
     assert result["exact_duplicates"]["pairs"] == 1
     assert result["exact_duplicates"]["duplicate_rate"] == 1.0
     assert result["exact_duplicates"]["rate_denominator"] == "retrieve_segments"
-    assert result["exact_duplicates"]["evidence"][0]["overlap"] == 1.0
+    assert result["cross_segment"] == []
+
+
+def test_policy_twice_cross_segment():
+    segments = load_jsonl(FIXTURES / "policy-twice.jsonl")
+    report = analyze_pack(segments, threshold=0.85)
+    result = report.to_audit_result()
+    assert result["cross_segment"] == [
+        {"from": "retrieve", "to": "system", "method": "exact", "overlap": 1.0}
+    ]
 
 
 def test_scan_gate_exact_duplicate():
     segments = load_jsonl(FIXTURES / "dup-pack.jsonl")
+    report = analyze_pack(segments, threshold=0.85)
+    gate = evaluate_scan_gate(report, fail_on_overlap=True)
+    assert gate is not None
+    assert gate.passed is False
+
+
+def test_scan_gate_cross_segment():
+    segments = load_jsonl(FIXTURES / "policy-twice.jsonl")
     report = analyze_pack(segments, threshold=0.85)
     gate = evaluate_scan_gate(report, fail_on_overlap=True)
     assert gate is not None

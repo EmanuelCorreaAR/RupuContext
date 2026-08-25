@@ -69,24 +69,30 @@ def cmd_scan(args: argparse.Namespace) -> int:
         for report in reports
     ]
 
-    if len(reports) == 1:
-        result = reports[0].to_audit_result()
+    result = {"results": [report.to_audit_result() for report in reports]}
+    if len(gates) == 1:
         gate = gates[0]
-        if not args.quiet:
+    elif any(g is not None for g in gates):
+        from .policy import GateResult
+
+        gate = GateResult(
+            passed=all(g.passed for g in gates if g is not None),
+            rules=[rule for g in gates if g for rule in g.rules],
+        )
+    else:
+        gate = None
+
+    if not args.quiet:
+        for report, pack_gate in zip(reports, gates):
             render_scan_report(
-                reports[0],
-                gate=gate,
+                report,
+                gate=pack_gate if len(reports) == 1 else None,
                 output_path=str(args.output or DEFAULT_SCAN_REPORT),
             )
-    else:
-        result = {"results": [report.to_audit_result() for report in reports]}
-        gate = None
-        if any(g is not None for g in gates):
-            from .policy import GateResult
-
-            gate = GateResult(
-                passed=all(g.passed for g in gates if g is not None),
-                rules=[rule for g in gates if g for rule in g.rules],
+        if len(reports) > 1 and gate is not None:
+            print(
+                f"Policy gate: {'PASSED' if gate.passed else 'FAILED'} (all packs)",
+                file=sys.stderr,
             )
 
     audit = build_audit(

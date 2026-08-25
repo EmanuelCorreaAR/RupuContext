@@ -37,7 +37,7 @@ Policy gates exit **2** when thresholds are exceeded. Exit **1** is reserved for
 
 `scan` reports retrieve duplicates in `exact_duplicates` / `near_duplicates`, and cross-role overlap in `cross_segment` (e.g. policy pasted in system and retrieve). `compare` uses the same `segment_text` unit as `scan`.
 
-A JSONL file with multiple `pack_id` values emits `result.results[]`; a single pack emits one object under `result`.
+A JSONL file with one or more `pack_id` values always emits `result.results[]` (one element per pack).
 
 Gates are flags, not subcommands:
 
@@ -72,11 +72,11 @@ Reports follow: `input → configuration → method → result → (optional) ga
 ```json
 {
   "tool": "rupucontext",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "command": "scan",
   "input": {
-    "path": "fixtures/dup-pack.jsonl",
-    "segments": 4,
+    "path": "fixtures/policy-twice.jsonl",
+    "segments": 3,
     "packs": 1
   },
   "configuration": {
@@ -90,26 +90,31 @@ Reports follow: `input → configuration → method → result → (optional) ga
     "near": "jaccard_char_shingles_v1"
   },
   "result": {
-    "pack_id": "req-001",
-    "segment_count": 4,
-    "retrieve_segment_count": 2,
-    "exact_duplicates": {
-      "pairs": 1,
-      "segments_flagged": 2,
-      "duplicate_bytes": 65,
-      "duplicate_rate": 1.0,
-      "rate_denominator": "retrieve_segments",
-      "evidence": [
-        {"a": "c42", "b": "c17", "method": "exact", "overlap": 1.0}
-      ]
-    },
-    "near_duplicates": {
-      "pairs": 0,
-      "segments_flagged": 0,
-      "record_rate": 0.0,
-      "rate_denominator": "retrieve_segments",
-      "evidence": []
-    }
+    "results": [
+      {
+        "pack_id": "req-policy",
+        "segment_count": 3,
+        "retrieve_segment_count": 1,
+        "exact_duplicates": {
+          "pairs": 0,
+          "segments_flagged": 0,
+          "duplicate_bytes": 0,
+          "duplicate_rate": 0.0,
+          "rate_denominator": "retrieve_segments",
+          "evidence": []
+        },
+        "near_duplicates": {
+          "pairs": 0,
+          "segments_flagged": 0,
+          "record_rate": 0.0,
+          "rate_denominator": "retrieve_segments",
+          "evidence": []
+        },
+        "cross_segment": [
+          {"from": "retrieve", "to": "system", "method": "exact", "overlap": 1.0}
+        ]
+      }
+    ]
   },
   "gate": {
     "passed": false,
@@ -119,6 +124,8 @@ Reports follow: `input → configuration → method → result → (optional) ga
   }
 }
 ```
+
+`fixtures/dup-pack.jsonl` (quick start) flags retrieve∩retrieve duplicates; `cross_segment` may be `[]` when no cross-role overlap is detected.
 
 Byte counts and overlap ratios — not token estimates. Contract details: [docs/AUDIT.md](docs/AUDIT.md).
 
@@ -158,7 +165,7 @@ pytest
 
 ## Status
 
-**0.1.1** — `scan` + `compare`; policy gate flags; deterministic audit JSON.
+**0.1.0** — `scan` + `compare`; policy gate flags; deterministic audit JSON.
 
 **Next:** stabilize audit contract toward 1.0.
 

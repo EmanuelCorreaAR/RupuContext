@@ -48,15 +48,15 @@ def evaluate_scan_gate(
         return None
 
     rules: list[GateRule] = []
-    overlap_pairs = len(report.duplicates)
+    overlap_signals = len(report.duplicates) + len(report.cross_segment)
 
     if fail_on_overlap:
         rules.append(
             GateRule(
                 metric="overlap_pairs",
-                actual=float(overlap_pairs),
+                actual=float(overlap_signals),
                 threshold=0.0,
-                passed=overlap_pairs == 0,
+                passed=overlap_signals == 0,
             )
         )
 

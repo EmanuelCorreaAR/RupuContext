@@ -1,0 +1,3 @@
+{"pack_id": "req-policy", "role": "system", "text": "Refund policy: items within 30 days may be returned with receipt."}
+{"pack_id": "req-policy", "role": "retrieve", "chunk_id": "c1", "text": "Refund policy: items within 30 days may be returned with receipt."}
+{"pack_id": "req-policy", "role": "user", "text": "Can I return this?"}

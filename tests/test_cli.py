@@ -28,6 +28,10 @@ def tmp_report(tmp_path: Path):
     return tmp_path / "out.json"
 
 
+def _scan_results(data: dict) -> list[dict]:
+    return data["result"]["results"]
+
+
 def test_scan_audit_contract(tmp_report: Path):
     result = run_cli("scan", str(FIXTURES / "dup-pack.jsonl"), "-o", str(tmp_report), "-q")
     assert result.returncode == 0
@@ -36,11 +40,22 @@ def test_scan_audit_contract(tmp_report: Path):
     assert "family" not in data
     assert data["input"]["segments"] == 4
     assert data["method"]["exact"] == "text_exact_v1"
-    assert data["result"]["exact_duplicates"]["pairs"] == 1
+    pack = _scan_results(data)[0]
+    assert pack["exact_duplicates"]["pairs"] == 1
+    assert pack["cross_segment"] == []
     assert "gate" not in data
 
 
-def test_scan_fail_on_overlap(tmp_report: Path):
+def test_scan_policy_twice_cross_segment(tmp_report: Path):
+    result = run_cli("scan", str(FIXTURES / "policy-twice.jsonl"), "-o", str(tmp_report), "-q")
+    assert result.returncode == 0
+    pack = _scan_results(json.loads(tmp_report.read_text(encoding="utf-8")))[0]
+    assert pack["cross_segment"] == [
+        {"from": "retrieve", "to": "system", "method": "exact", "overlap": 1.0}
+    ]
+
+
+def test_scan_fail_on_overlap_dup_pack(tmp_report: Path):
     result = run_cli(
         "scan",
         str(FIXTURES / "dup-pack.jsonl"),
@@ -53,6 +68,18 @@ def test_scan_fail_on_overlap(tmp_report: Path):
     data = json.loads(tmp_report.read_text(encoding="utf-8"))
     assert data["gate"]["passed"] is False
     assert data["gate"]["rules"][0]["metric"] == "overlap_pairs"
+
+
+def test_scan_fail_on_overlap_policy_twice(tmp_report: Path):
+    result = run_cli(
+        "scan",
+        str(FIXTURES / "policy-twice.jsonl"),
+        "--fail-on-overlap",
+        "-o",
+        str(tmp_report),
+        "-q",
+    )
+    assert result.returncode == 2
 
 
 def test_scan_clean_pack(tmp_report: Path):

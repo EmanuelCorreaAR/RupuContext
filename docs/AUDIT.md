@@ -26,9 +26,9 @@ Near-duplicate detection uses character shingles (Jaccard). `--near-duplicate-th
 | `exact_duplicates.duplicate_rate` | retrieve segments flagged / `retrieve_segment_count` |
 | `near_duplicates.pairs` | retrieve∩retrieve pairs above Jaccard threshold |
 | `near_duplicates.record_rate` | near-flagged retrieve segments / `retrieve_segment_count` |
-| `cross_segment` | Best overlap between role groups (system∩retrieve, user∩retrieve, …) |
+| `cross_segment` | Best overlap between role groups (`from`, `to`, `method`, `overlap`) |
 
-When the input JSONL contains multiple `pack_id` values, `result` is `{ "results": [ ... ] }`. A single pack emits one object directly under `result`.
+When the input JSONL contains one or more `pack_id` values, `result` is always `{ "results": [ ... ] }` (one object per pack).
 
 Evidence documents **which segments** and **which score** — not full text payloads.
 
