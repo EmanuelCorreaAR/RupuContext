@@ -1,10 +1,12 @@
-# r5x
+# RupuContext
+
+Part of the **RupuData** family.
 
 **Lint the pack. Don't pay twice.**
 
 Local-first CLI to audit LLM context packs for duplicate chunks, cross-segment overlap, and wasted context. Deterministic JSON reports. CI gates. No model calls.
 
-**Package:** [`rupuctx`](https://pypi.org/project/rupuctx) · **License:** Apache 2.0
+**Repo:** [`rupucontext`](https://github.com/EmanuelCorreaAR/rupucontext) · **License:** Apache 2.0
 
 ---
 
@@ -12,9 +14,9 @@ Local-first CLI to audit LLM context packs for duplicate chunks, cross-segment o
 
 **RupuData** asks: does your train overlap with your eval?
 
-**r5x** asks: are you paying the model to read the same text twice?
+**RupuContext** asks: are you paying the model to read the same text twice?
 
-You don't train anymore — you rent an LLM. The cost isn't fine-tuning; it's the **context pack** sent on every call: system prompt, retrieved chunks, history, user message. Duplicate chunks. Policy pasted again in the RAG. Questions already in the KB. The invoice arrives later. **r5x looks before the call.**
+You don't train anymore — you rent an LLM. The cost isn't fine-tuning; it's the **context pack** sent on every call: system prompt, retrieved chunks, history, user message. Duplicate chunks. Policy pasted again in the RAG. Questions already in the KB. The invoice arrives later. **RupuContext looks before the call.**
 
 Local. JSONL in. Deterministic JSON out. CI gate (exit 2). Technical signals — not certification, not a dashboard, not a proxy, not another LLM call to "evaluate."
 
@@ -24,13 +26,13 @@ Local. JSONL in. Deterministic JSON out. CI gate (exit 2). Technical signals —
 
 Text overlap — exact match, normalized match, Jaccard shingles. Same engine as RupuData; different object: the **pack you send to the LLM**, not the training dataset.
 
-| | RupuData | r5x |
-|---|----------|-----|
+| | RupuData | RupuContext |
+|---|----------|-------------|
 | Question | Does train overlap eval? | Are you buying the same context twice? |
 | Input | Corpus / benchmark | Context pack (JSONL) |
 | User | ML / data eng | Agent / RAG eng with exportable traces |
 
-**Family:** `rupudata` = path of the data · `r5x` = path of the context.
+**Family:** `rupudata` = path of the data · `rupucontext` = path of the context.
 
 ---
 
@@ -64,12 +66,12 @@ Roles: `system`, `retrieve`, `history`, `user` (extensible). `chunk_id` optional
 ## CLI (planned v0.1)
 
 ```bash
-pip install rupuctx
+pip install rupucontext
 
-rupuctx scan pack.jsonl              # parse, validate, summarize
-rupuctx compare corpus.jsonl q.jsonl # overlap: corpus vs questions
-rupuctx report pack.jsonl -o out.json
-rupuctx gate pack.jsonl --threshold 0.85   # exit 2 if overlap exceeds threshold
+rupucontext scan pack.jsonl                    # parse, validate, summarize
+rupucontext compare corpus.jsonl q.jsonl       # overlap: corpus vs questions
+rupucontext report pack.jsonl -o out.json
+rupucontext gate pack.jsonl --threshold 0.85   # exit 2 if overlap exceeds threshold
 ```
 
 ---
@@ -105,8 +107,8 @@ Byte counts and overlap ratios — not token estimates.
 | `2` | Gate failed — duplicate/overlap above threshold |
 
 ```yaml
-# .github/workflows/r5x.yml
-- run: rupuctx gate fixtures/dup-pack.jsonl --threshold 0.85
+# .github/workflows/rupucontext.yml
+- run: rupucontext gate fixtures/dup-pack.jsonl --threshold 0.85
 ```
 
 ---
