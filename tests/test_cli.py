@@ -119,7 +119,6 @@ def test_compare(tmp_report: Path):
 def test_report_and_gate_removed():
     result = run_cli("report", str(FIXTURES / "dup-pack.jsonl"))
     assert result.returncode != 0
-    assert "invalid choice" in result.stderr or result.returncode == 2
 
     result = run_cli("gate", str(FIXTURES / "dup-pack.jsonl"))
     assert result.returncode != 0

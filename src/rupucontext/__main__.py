@@ -1,3 +1,4 @@
-from .cli import main
+from .cli import app
 
-raise SystemExit(main())
+if __name__ == "__main__":
+    app()

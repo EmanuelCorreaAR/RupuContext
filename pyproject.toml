@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rupucontext"
-version = "0.1.1"
+version = "0.1.2"
 description = "Local-first CLI to audit LLM context packs for duplicate chunks and wasted context — part of the Rupu family."
 readme = "README.md"
 license = "Apache-2.0"
@@ -36,13 +36,14 @@ classifiers = [
 ]
 dependencies = [
     "rich>=13.0.0",
+    "typer>=0.12.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.4", "build>=1.0.0"]
 
 [project.scripts]
-rupucontext = "rupucontext.cli:main"
+rupucontext = "rupucontext.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/EmanuelCorreaAR/rupucontext"
